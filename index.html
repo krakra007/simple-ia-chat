@@ -19,6 +19,8 @@
     .app.welcome-active .messages{flex:0 0 auto;overflow:visible;padding:0 max(22px,calc((100% - 860px)/2))}
     .app.welcome-active .welcome{margin:clamp(70px,12vh,130px) auto 32px}
     .app.welcome-active .composer-wrap{width:min(860px,calc(100% - 32px));align-self:center;padding:0;background:none}
+    .welcome h1{background:linear-gradient(100deg,#ffe16a 0%,#ffb52b 48%,#f47a16 100%);background-clip:text;-webkit-background-clip:text;color:transparent;text-shadow:none}
+    .welcome h1 .accent{background:none;color:#f97316;-webkit-text-fill-color:#f97316;font-style:italic;text-shadow:0 0 22px #f9731666}
     @media(max-width:680px){.app.welcome-active .messages{padding:0 16px}.app.welcome-active .welcome{margin:6vh auto 26px}.app.welcome-active .composer-wrap{width:calc(100% - 20px);padding:0 0 max(10px,env(safe-area-inset-bottom))}}
   </style>
   <script>window.MathJax={loader:{load:['[tex]/mhchem']},tex:{inlineMath:[['\\(','\\)'],['$','$']],packages:{'[+]':['mhchem']}},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
@@ -69,7 +71,7 @@
   const $=id=>document.getElementById(id), store={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
   const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY),nativeFetch=window.fetch.bind(window);let syncTimer=null,activeUser=null,requestController=null;
   const fetch=(url,options={})=>nativeFetch(url,{...options,signal:requestController?.signal||options.signal});
-  let chats=store.get('simpleIA.chats',[]), activeId=store.get('simpleIA.active',null), cfg=store.get('simpleIA.cfg',{provider:'gemini',model:'gemini-2.5-flash',temperature:0.7,maxTokens:2048,topP:1,topK:'',frequencyPenalty:0,presencePenalty:0,seed:'',deepResearch:false,sidebarCollapsed:false,inputPrice:0,outputPrice:0,systemPrompt:'',geminiKey:'',openrouterKey:'',openaiKey:''}),dailyLedger=store.get('simpleIA.dailyLedger',{totals:{},recorded:{}});
+  let chats=store.get('simpleIA.chats',[]), activeId=store.get('simpleIA.active',null), cfg=store.get('simpleIA.cfg',{provider:'gemini',model:'gemini-2.5-flash',temperature:0.7,maxTokens:2048,topP:1,topK:'',frequencyPenalty:0,presencePenalty:0,seed:'',deepResearch:false,sidebarCollapsed:false,inputPrice:0,outputPrice:0,systemPrompt:'',geminiKey:'',openrouterKey:'',openaiKey:''}),dailyLedger=store.get('simpleIA.dailyLedger',{totals:{},recorded:{}}),firstLaunch=!store.get('simpleIA.hasLaunched',false);
   Object.assign(cfg,{topP:cfg.topP??1,topK:cfg.topK??'',frequencyPenalty:cfg.frequencyPenalty??0,presencePenalty:cfg.presencePenalty??0,seed:cfg.seed??'',deepResearch:cfg.deepResearch??false,sidebarCollapsed:cfg.sidebarCollapsed??false});
   if(cfg.inputPrice===undefined){const r=PRICE[cfg.model];if(r){cfg.inputPrice=r[0];cfg.outputPrice=r[1]}}
   const loadedModels=cfg.modelLists||{};cfg.modelLists=loadedModels;
@@ -126,9 +128,9 @@
   $('newChat').onclick=newChat;$('settingsBtn').onclick=()=>{$('settings').classList.toggle('open');setFields()};$('closeSettings').onclick=()=>{$('settings').classList.remove('open')};$('closeHistory').onclick=()=>{$('app').classList.remove('mobile-history-open')};$('toggleSidebar').onclick=()=>{if(innerWidth<=680){$('app').classList.toggle('mobile-history-open');return}cfg.sidebarCollapsed=!cfg.sidebarCollapsed;save();render()};$('reloadModels').onclick=refreshModels;$('provider').onchange=e=>{cfg.provider=e.target.value;cfg.model=modelList()[0].id;applyModelPrice();save();render()};$('model').onchange=e=>{cfg.model=e.target.value;applyModelPrice();save();setFields()};$('deepResearch').onchange=e=>{cfg.deepResearch=e.target.checked;save()};$('send').onclick=ask;$('stop').onclick=()=>requestController?.abort();$('input').oninput=autoGrow;$('input').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask()}};$('signIn').onclick=signIn;$('signUp').onclick=signUp;$('syncNow').onclick=()=>pushToCloud().catch(e=>setSyncStatus(e.message,true));$('signOut').onclick=async()=>{await sb.auth.signOut();await updateAuthUI()};sb.auth.onAuthStateChange(()=>setTimeout(updateAuthUI,0));
   for(const k of ['geminiKey','openrouterKey','openaiKey','temperature','maxTokens','topP','topK','frequencyPenalty','presencePenalty','seed','inputPrice','outputPrice','systemPrompt'])$(k).oninput=e=>{cfg[k]=e.target.value;save()};$('clearAll').onclick=()=>{if(confirm('Supprimer définitivement toutes les conversations ?')){chats=[];activeId=null;save();newChat()}};
   document.querySelectorAll('[data-test]').forEach(b=>b.onclick=()=>testKey(b.dataset.test,b));
-  const baseRenderMessages=renderMessages;renderMessages=function(){const c=current(),isWelcome=!c||!c.messages.length;$('app').classList.toggle('welcome-active',isWelcome);if(isWelcome){const box=$('messages');updateDailyCost();box.innerHTML='<div class="empty welcome"><h1>SImpleBr<em class="accent">AI</em>n</h1></div>';return}return baseRenderMessages()};
+  const baseRenderMessages=renderMessages;renderMessages=function(){const c=current(),isWelcome=!c||!c.messages.length;$('app').classList.toggle('welcome-active',isWelcome);if(isWelcome){const box=$('messages');updateDailyCost();box.innerHTML='<div class="empty welcome"><h1>SimpleBr<em class="accent">AI</em>n</h1></div>';return}return baseRenderMessages()};
   if(cfg.pricedModel!==cfg.model)applyModelPrice();
-  registerKnownCosts();if(!activeId||!current())newChat();else{setFields();render()}updateAuthUI();
+  registerKnownCosts();if(firstLaunch){store.set('simpleIA.hasLaunched',true);newChat()}else if(!activeId||!current())newChat();else{setFields();render()}updateAuthUI();
   if((cfg.geminiKey&&!loadedModels.gemini)||(cfg.openaiKey&&!loadedModels.openai))setTimeout(refreshModels,0)
 </script>
 </body></html>

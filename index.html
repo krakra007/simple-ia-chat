@@ -146,7 +146,7 @@
   document.querySelectorAll('[data-test]').forEach(b=>b.onclick=()=>testKey(b.dataset.test,b));
   const baseRenderMessages=renderMessages;renderMessages=function(){const c=current(),isWelcome=!c||!c.messages.length;$('app').classList.toggle('welcome-active',isWelcome);if(isWelcome){const box=$('messages');updateDailyCost();box.innerHTML='<div class="empty welcome"><h1>Simple<span class="brand-suffix">Br</span><em class="accent">AI</em>n</h1></div>';return}return baseRenderMessages()};
   setFavicon();if(cfg.pricedModel!==cfg.model)applyModelPrice();
-  registerKnownCosts();if(firstLaunch){store.set('simpleIA.hasLaunched',true);newChat()}else if(!activeId||!current())newChat();else{setFields();render()}updateAuthUI();
+  const launchNewConversation=new URLSearchParams(location.search).get('new')==='1';registerKnownCosts();if(launchNewConversation){history.replaceState(null,'',location.pathname);newChat()}else if(firstLaunch){store.set('simpleIA.hasLaunched',true);newChat()}else if(!activeId||!current())newChat();else{setFields();render()}updateAuthUI();
   if((cfg.geminiKey&&!loadedModels.gemini)||(cfg.openaiKey&&!loadedModels.openai))setTimeout(refreshModels,0)
 </script>
 </body></html>

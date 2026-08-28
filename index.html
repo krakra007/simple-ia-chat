@@ -46,6 +46,10 @@
       .topbar-mobile-break,.topbar .spacer{display:none!important}.topbar #model{grid-column:1 / 3;grid-row:2;width:100%;min-width:0;max-width:none}.topbar #shortAnswerBtn{grid-column:3;grid-row:2}.topbar #antiHallucinationBtn{grid-column:4;grid-row:2}.topbar #topNewChat{grid-column:5;grid-row:2;width:34px;height:34px;margin:0;padding:0}.topbar .daily-cost{grid-column:6;grid-row:2;min-width:48px;padding:7px 4px;text-align:center}.topbar #settingsBtn{grid-column:7;grid-row:2;width:34px;height:34px;padding:0}
     }
   </style>
+  <style>
+    .welcome .welcome-help{margin:0;color:#f7f7f7;font-size:clamp(30px,4vw,46px);line-height:1.2;letter-spacing:-1.2px;font-weight:700;text-align:center}
+    @media(max-width:900px),(pointer:coarse){.welcome .welcome-help{font-size:clamp(28px,8vw,38px);letter-spacing:-.8px}}
+  </style>
   <script>window.MathJax={loader:{load:['[tex]/mhchem']},tex:{inlineMath:[['\\(','\\)'],['$','$']],packages:{'[+]':['mhchem']}},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
   <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
@@ -201,6 +205,7 @@
   for(const k of ['geminiKey','openrouterKey','openaiKey','temperature','maxTokens','topP','topK','frequencyPenalty','presencePenalty','seed','inputPrice','outputPrice','systemPrompt'])$(k).oninput=e=>{cfg[k]=e.target.value;saveConfig()};$('clearAll').onclick=()=>{if(confirm('Supprimer définitivement toutes les conversations ?')){chats=[];activeId=null;save();newChat()}};
   document.querySelectorAll('[data-test]').forEach(b=>b.onclick=()=>testKey(b.dataset.test,b));
   const baseRenderMessages=renderMessages;renderMessages=function(){const c=current(),isWelcome=!c||!c.messages.length;$('app').classList.toggle('welcome-active',isWelcome);if(isWelcome){const box=$('messages');updateDailyCost();box.innerHTML='<div class="empty welcome"><h1>Simple<span class="brand-suffix">Br</span><em class="accent">AI</em><span class="brand-tail">n</span></h1></div>';return}baseRenderMessages();const rows=[...$('messages').querySelectorAll('.row')];c.messages.forEach((m,i)=>{if(!m.image||!rows[i])return;const wrap=rows[i].firstElementChild;if(!wrap)return;const media=document.createElement('div');media.className='generated-image';const image=document.createElement('img');image.src=m.image;image.alt='Image générée';image.loading='eager';const download=document.createElement('a');download.className='download-image';download.href=m.image;download.download='simplebrain-image.png';download.textContent='⇩ Télécharger l’image PNG';media.append(image,download);const actions=wrap.querySelector('.message-actions');wrap.insertBefore(media,actions);const usage=wrap.querySelector('.usage');if(usage)media.after(usage)});$('messages').scrollTop=$('messages').scrollHeight};
+  const renderMessagesWithBrand=renderMessages;renderMessages=function(){renderMessagesWithBrand();const c=current();if(!c||!c.messages.length){const welcome=$('messages').querySelector('.welcome');if(welcome)welcome.innerHTML='<h1 class="welcome-help">How can I help?</h1>'}};
   resetDefaultChatModel();setFavicon();saveConfig();render();
   const launchNewConversation=new URLSearchParams(location.search).get('new')==='1';registerKnownCosts();if(launchNewConversation)history.replaceState(null,'',location.pathname);store.set('simpleIA.hasLaunched',true);if(!activeUser&&!chats.length)newChat();updateAuthUI();
   if((cfg.geminiKey&&!loadedModels.gemini)||(cfg.openaiKey&&!loadedModels.openai))setTimeout(refreshModels,0)

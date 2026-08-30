@@ -56,6 +56,9 @@
   <style>
     .thinking-brain{animation:brain-colors 1.8s ease-in-out infinite}@keyframes brain-colors{0%,100%{filter:drop-shadow(0 0 5px #60a5faaa) hue-rotate(0deg);transform:scale(1)}33%{filter:drop-shadow(0 0 8px #4ade80cc) hue-rotate(85deg);transform:scale(1.07)}66%{filter:drop-shadow(0 0 8px #fb923ccc) hue-rotate(205deg);transform:scale(1.03)}}
   </style>
+  <style>
+    .send{display:grid;place-items:center;padding:0;border-radius:50%;background:#0b6bcb;color:#fff;line-height:0}.send:hover{background:#095daf}.send svg{display:block;width:18px;height:18px;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;fill:none}.send:disabled{background:#59636d;color:#aeb7c0}
+  </style>
   <script>window.MathJax={loader:{load:['[tex]/mhchem']},tex:{inlineMath:[['\\(','\\)'],['$','$']],packages:{'[+]':['mhchem']}},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
   <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
@@ -88,18 +91,18 @@
       <button class="danger" id="clearAll">Effacer tout l’historique</button><div class="hint">Conseil : pour un usage sensible ou partagé, préférez un petit serveur intermédiaire plutôt qu’une clé dans le navigateur.</div>
     </section>
     <section class="messages" id="messages"></section>
-    <section class="composer-wrap"><div class="attachment-list" id="attachmentList"></div><div class="composer"><input id="fileInput" type="file" multiple accept="image/png,image/jpeg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md" hidden><button class="attach" id="attachBtn" title="Joindre un PDF, fichier Office ou image" aria-label="Joindre un fichier">＋</button><button class="draw-image" id="drawImage" title="Dessiner une image avec GPT Image 2" aria-label="Dessiner une image">🎨</button><textarea id="input" rows="1" placeholder="Écrivez votre message…"></textarea><button class="stop" id="stop" title="Arrêter la réponse">■</button><button class="send" id="send" title="Envoyer">↑</button></div><div class="footer-note">Entrée pour envoyer · Maj + Entrée pour un saut de ligne</div></section>
+    <section class="composer-wrap"><div class="attachment-list" id="attachmentList"></div><div class="composer"><input id="fileInput" type="file" multiple accept="image/png,image/jpeg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md" hidden><button class="attach" id="attachBtn" title="Joindre un PDF, fichier Office ou image" aria-label="Joindre un fichier">＋</button><button class="draw-image" id="drawImage" title="Dessiner une image avec GPT Image 2" aria-label="Dessiner une image">🎨</button><textarea id="input" rows="1" placeholder="Écrivez votre message…"></textarea><button class="stop" id="stop" title="Arrêter la réponse">■</button><button class="send" id="send" title="Envoyer" aria-label="Envoyer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"></path></svg></button></div><div class="footer-note">Entrée pour envoyer · Maj + Entrée pour un saut de ligne</div></section>
   </main>
 </div>
 <script>
   const DEFAULT_CHAT_PROVIDER='openrouter',DEFAULT_CHAT_MODEL='mistralai/mistral-small-2603';
   const MODELS={
     gemini:[{id:'gemini-3.1-pro-preview',label:'Gemini 3.1 Pro · aperçu'},{id:'gemini-2.5-pro',label:'Gemini 2.5 Pro'},{id:'gemini-3.5-flash',label:'Gemini 3.5 Flash'},{id:'gemini-3.7-flash',label:'Gemini 3.7 Flash'},{id:'gemini-3.6-flash',label:'Gemini 3.6 Flash'},{id:'gemini-3-flash-preview',label:'Gemini 3 Flash · aperçu'},{id:'gemini-3.5-flash-lite',label:'Gemini 3.5 Flash-Lite'},{id:'gemini-2.5-flash',label:'Gemini 2.5 Flash'},{id:'gemini-3.1-flash-lite',label:'Gemini 3.1 Flash-Lite'},{id:'gemini-2.5-flash-lite',label:'Gemini 2.5 Flash-Lite'}],
-    openrouter:[{id:'deepseek/deepseek-v4-flash',label:'DeepSeek V4 Flash'},{id:'deepseek/deepseek-v4-pro',label:'DeepSeek V4 Pro'},{id:'mistralai/mistral-small-2603',label:'Mistral Small 4'},{id:'openai/gpt-oss-20b',label:'GPT-OSS 20B'},{id:'qwen/qwen3-8b',label:'Qwen3 8B'},{id:'google/gemma-3-12b-it',label:'Gemma 3 12B'}],
+    openrouter:[{id:'deepseek/deepseek-v4-flash',label:'DeepSeek V4 Flash'},{id:'deepseek/deepseek-v4-pro',label:'DeepSeek V4 Pro'},{id:'mistralai/mistral-small-2603',label:'Mistral Small 4'},{id:'openai/gpt-oss-120b',label:'GPT-OSS 120B'},{id:'openai/gpt-oss-20b',label:'GPT-OSS 20B'},{id:'qwen/qwen3-8b',label:'Qwen3 8B'},{id:'google/gemma-3-12b-it',label:'Gemma 3 12B'}],
     openai:[{id:'gpt-5.5',label:'GPT-5.5'},{id:'gpt-5-mini',label:'GPT-5 mini'},{id:'gpt-4.1',label:'GPT-4.1'},{id:'gpt-image-2',label:'GPT Image 2 · images'}]
   };
   const PRICE={
-    'deepseek/deepseek-v4-flash':[.04,.08],'deepseek/deepseek-v4-pro':[.66,1.98],'mistralai/mistral-small-2603':[.15,.60],'openai/gpt-oss-20b':[.03,.13],'qwen/qwen3-8b':[.05,.40],'google/gemma-3-12b-it':[.05,.15],
+    'deepseek/deepseek-v4-flash':[.04,.08],'deepseek/deepseek-v4-pro':[.66,1.98],'mistralai/mistral-small-2603':[.15,.60],'openai/gpt-oss-120b':[.03,.17],'openai/gpt-oss-20b':[.03,.13],'qwen/qwen3-8b':[.05,.40],'google/gemma-3-12b-it':[.05,.15],
     'gemini-1.5-pro':[1.25,5],'gemini-1.5-flash':[.075,.30],'gemini-2.0-flash':[.10,.40],'gemini-2.0-flash-lite':[.075,.30],
     'gemini-2.5-flash':[.30,2.50],'gemini-2.5-flash-lite':[.10,.40],'gemini-2.5-pro':[1.25,10],
     'gemini-3.1-pro-preview':[2,12],'gemini-3.1-flash-lite':[.25,1.50],'gemini-3-flash-preview':[.50,3],

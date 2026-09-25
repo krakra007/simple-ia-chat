@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- SimpleBrain v131 -->
+<!-- SimpleBrain v132 -->
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -157,7 +157,7 @@
 <script>
   const DEFAULT_CHAT_PROVIDER='openrouter',DEFAULT_CHAT_MODEL='mistralai/mistral-small-2603';
   const COMPARISON_MODELS=[
-    {provider:'gemini',model:'gemini-3.5-flash',label:'Gemini 3.5 Flash'},
+    {provider:'gemini',model:'gemini-3.8-flash',label:'Gemini 3.8 Flash'},
     {provider:'openai',model:'gpt-6-astra',label:'ChatGPT Astra'},
     {provider:'openrouter',model:'anthropic/claude-sonnet-5',label:'Claude Sonnet 5'},
     {provider:'openrouter',model:'deepseek/deepseek-v4-pro-0813',label:'DeepSeek V4 Pro 0813'}
@@ -170,22 +170,24 @@
   ];
   const MODELS={
     gemini:[{id:'gemini-3.8-flash',label:'Gemini 3.8 Flash'},{id:'gemini-3.1-pro-preview',label:'Gemini 3.1 Pro · aperçu'},{id:'gemini-2.5-pro',label:'Gemini 2.5 Pro'},{id:'gemini-3.5-flash',label:'Gemini 3.5 Flash'},{id:'gemini-3.7-flash',label:'Gemini 3.7 Flash'},{id:'gemini-3.6-flash',label:'Gemini 3.6 Flash'},{id:'gemini-3-flash-preview',label:'Gemini 3 Flash · aperçu'},{id:'gemini-3.5-flash-lite',label:'Gemini 3.5 Flash-Lite'},{id:'gemini-2.5-flash',label:'Gemini 2.5 Flash'},{id:'gemini-3.1-flash-lite',label:'Gemini 3.1 Flash-Lite'},{id:'gemini-2.5-flash-lite',label:'Gemini 2.5 Flash-Lite'}],
-    openrouter:[{id:'deepseek/deepseek-v4.1-flash',label:'DeepSeek V4.1 Flash'},{id:'deepseek/deepseek-v4-pro-0813',label:'DeepSeek V4 Pro 0813'},{id:'mistralai/mistral-small-2603',label:'Mistral Small 4'},{id:'openai/gpt-oss-120b',label:'GPT-OSS 120B'},{id:'openai/gpt-oss-20b',label:'GPT-OSS 20B'},{id:'qwen/qwen3-8b',label:'Qwen3 8B'},{id:'google/gemma-3-12b-it',label:'Gemma 3 12B'},{id:'anthropic/claude-opus-5',label:'Claude Opus 5'},{id:'anthropic/claude-sonnet-5',label:'Claude Sonnet 5'},{id:'anthropic/claude-haiku-4.5',label:'Claude Haiku 4.5'},{id:'anthropic/claude-opus-4.8',label:'Claude Opus 4.8'},{id:'anthropic/claude-opus-4.7',label:'Claude Opus 4.7'},{id:'anthropic/claude-opus-4.6',label:'Claude Opus 4.6'}],
-    openai:[{id:'gpt-6-astra',label:'GPT-6 Astra'},{id:'gpt-5.5',label:'GPT-5.5'},{id:'gpt-5.6-sol',label:'GPT-5.6 Sol'},{id:'gpt-5.4',label:'GPT-5.4'},{id:'gpt-5.6-terra',label:'GPT-5.6 Terra'},{id:'gpt-4.1',label:'GPT-4.1'},{id:'gpt-5.4-mini',label:'GPT-5.4 Mini'},{id:'gpt-5-mini',label:'GPT-5 mini'},{id:'gpt-5.4-nano',label:'GPT-5.4 Nano'},{id:'gpt-5.6-luna',label:'GPT-5.6 Luna'},{id:'gpt-image-2',label:'GPT Image 2 · images'}]
+    openrouter:[{id:'deepseek/deepseek-v4-flash-0731',label:'DeepSeek V4 Flash 0731'},{id:'deepseek/deepseek-v4-pro-0813',label:'DeepSeek V4 Pro 0813'},{id:'mistralai/mistral-small-2603',label:'Mistral Small 4'},{id:'openai/gpt-oss-120b',label:'GPT-OSS 120B'},{id:'openai/gpt-oss-20b',label:'GPT-OSS 20B'},{id:'qwen/qwen3-8b',label:'Qwen3 8B'},{id:'google/gemma-3-12b-it',label:'Gemma 3 12B'},{id:'anthropic/claude-opus-5.5',label:'Claude Opus 5.5'},{id:'anthropic/claude-opus-5',label:'Claude Opus 5'},{id:'anthropic/claude-sonnet-5',label:'Claude Sonnet 5'},{id:'anthropic/claude-haiku-4.5',label:'Claude Haiku 4.5'},{id:'anthropic/claude-opus-4.8',label:'Claude Opus 4.8'},{id:'anthropic/claude-opus-4.7',label:'Claude Opus 4.7'},{id:'anthropic/claude-opus-4.6',label:'Claude Opus 4.6'}],
+    openai:[{id:'gpt-6-astra',label:'GPT-6 Astra'},{id:'gpt-6-sol',label:'GPT-6 Sol'},{id:'gpt-6-luna',label:'GPT-6 Luna'},{id:'gpt-5.5',label:'GPT-5.5'},{id:'gpt-5.6-sol',label:'GPT-5.6 Sol'},{id:'gpt-5.4',label:'GPT-5.4'},{id:'gpt-5.6-terra',label:'GPT-5.6 Terra'},{id:'gpt-4.1',label:'GPT-4.1'},{id:'gpt-5.4-mini',label:'GPT-5.4 Mini'},{id:'gpt-5-mini',label:'GPT-5 mini'},{id:'gpt-5.4-nano',label:'GPT-5.4 Nano'},{id:'gpt-5.6-luna',label:'GPT-5.6 Luna'},{id:'gpt-image-2',label:'GPT Image 2 · images'}]
   };
   const PRICE={
-    'deepseek/deepseek-v4.1-flash':[.15,.60],'deepseek/deepseek-v4-pro-0813':[.66,1.98],'mistralai/mistral-small-2603':[.15,.60],'openai/gpt-oss-120b':[.037,.17],'openai/gpt-oss-20b':[.03,.13],'qwen/qwen3-8b':[.117,.455],'google/gemma-3-12b-it':[.05,.15],'anthropic/claude-opus-5':[5,25],'anthropic/claude-sonnet-5':[2,10],'anthropic/claude-haiku-4.5':[1,5],'anthropic/claude-opus-4.8':[5,25],'anthropic/claude-opus-4.7':[5,25],'anthropic/claude-opus-4.6':[5,25],
+    'deepseek/deepseek-v4-flash-0731':[.03,.32],'deepseek/deepseek-v4-pro-0813':[.579,1.738],'mistralai/mistral-small-2603':[.15,.60],'openai/gpt-oss-120b':[.037,.17],'openai/gpt-oss-20b':[.03,.13],'qwen/qwen3-8b':[.117,.455],'google/gemma-3-12b-it':[.05,.15],'anthropic/claude-opus-5.5':[4,20],'anthropic/claude-opus-5':[5,25],'anthropic/claude-sonnet-5':[2,10],'anthropic/claude-haiku-4.5':[1,5],'anthropic/claude-opus-4.8':[5,25],'anthropic/claude-opus-4.7':[5,25],'anthropic/claude-opus-4.6':[5,25],
     'gemini-1.5-pro':[1.25,5],'gemini-1.5-flash':[.075,.30],'gemini-2.0-flash':[.10,.40],'gemini-2.0-flash-lite':[.075,.30],
     'gemini-2.5-flash':[.30,2.50],'gemini-2.5-flash-lite':[.10,.40],'gemini-2.5-pro':[1.25,10],
     'gemini-3.1-pro-preview':[2,12],'gemini-3.1-flash-lite':[.25,1.50],'gemini-3-flash-preview':[.50,3],
     'gemini-3.5-flash':[1.50,9],'gemini-3.5-flash-lite':[.30,2.50],'gemini-3.6-flash':[.75,3.75],'gemini-3.7-flash':[.75,3.75],'gemini-3.8-flash':[.75,3.75],
     'gpt-5.6-sol':[4,20],'gpt-5.6-terra':[2,12],'gpt-5.6-luna':[.2,1.2],
-    'gpt-6-astra':[10,50],'gpt-5.5':[5,30],'gpt-5.4':[2.5,15],'gpt-5.4-mini':[.75,4.5],'gpt-5.4-nano':[.2,1.25],'gpt-5-mini':[.25,2],'gpt-4.1':[2,8]
+    'gpt-6-astra':[10,50],'gpt-6-sol':[2,10],'gpt-6-luna':[.10,.50],'gpt-5.5':[5,30],'gpt-5.4':[2.5,15],'gpt-5.4-mini':[.75,4.5],'gpt-5.4-nano':[.2,1.25],'gpt-5-mini':[.25,2],'gpt-4.1':[2,8]
   };
   const LONG_CONTEXT_PRICE={
     'gemini-3.1-pro-preview':{above:200000,rates:[4,18]},
     'gemini-2.5-pro':{above:200000,rates:[2.5,15]},
-    'gpt-6-astra':{above:272000,rates:[20,75]}
+    'gpt-6-astra':{above:272000,rates:[20,75]},
+    'gpt-6-sol':{above:272000,rates:[4,15]},
+    'gpt-6-luna':{above:272000,rates:[.20,.75]}
   };
   const SUPABASE_URL='https://bbfqsduftbemocruvxoy.supabase.co',SUPABASE_KEY='sb_publishable_zt7X6ZPmIC0e7wogtLE3_w_Ly4Juefu';
   const $=id=>document.getElementById(id), store={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){console.warn('Stockage local indisponible ou saturé :',e);return false}}};
@@ -198,6 +200,7 @@
   async function proxyFetch(action,body={}){const {data:{session}}=await sb.auth.getSession();if(!session)throw Error('Connectez-vous à votre compte Supabase pour utiliser les modèles.');const options={method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SUPABASE_KEY},body:JSON.stringify({action,body})},attempts=action==='openrouter-chat'?2:1;for(let attempt=0;attempt<attempts;attempt++){const response=await fetch(SUPABASE_URL+'/functions/v1/ai-proxy',options);if(response.ok||action!=='openrouter-chat')return response;const raw=await response.text();let data={};try{data=JSON.parse(raw)}catch{data={error:{message:raw||response.statusText}}}const message=providerErrorMessage(data,response.statusText),rateLimited=response.status===429||/temporarily rate-limited upstream|rate.?limit(?:ed| exceeded)/i.test(message),transient=!rateLimited&&(response.status===408||response.status>=500||/provider returned error|overload|temporar|timeout/i.test(message));if(transient&&attempt<attempts-1){await retryDelay(1200);continue}return new Response(JSON.stringify({...data,error:{...(data.error||{}),message}}),{status:response.status,statusText:response.statusText,headers:{'Content-Type':'application/json'}})}throw Error('Le fournisseur ne répond pas après plusieurs tentatives.')}
   let chats=store.get('simpleIA.chats',[]), activeId=store.get('simpleIA.active',null), cfg=store.get('simpleIA.cfg',{provider:'gemini',model:'gemini-2.5-flash',temperature:0.2,maxTokens:40000,topP:1,topK:'',frequencyPenalty:0,presencePenalty:0,seed:'',deepResearch:false,antiHallucination:false,shortAnswer:false,english:false,comparisonMode:false,slmComparisonMode:false,sidebarCollapsed:false,sidebarWidth:270,inputPrice:0,outputPrice:0,systemPrompt:''}),dailyLedger=store.get('simpleIA.dailyLedger',{totals:{},recorded:{}}),firstLaunch=!store.get('simpleIA.hasLaunched',false);
   if(cfg.model==='deepseek/deepseek-v4-pro')cfg.model='deepseek/deepseek-v4-pro-0813';
+  if(cfg.model==='deepseek/deepseek-v4.1-flash')cfg.model='deepseek/deepseek-v4-flash-0731';
   Object.assign(cfg,{topP:cfg.topP??1,topK:cfg.topK??'',frequencyPenalty:cfg.frequencyPenalty??0,presencePenalty:cfg.presencePenalty??0,seed:cfg.seed??'',deepResearch:cfg.deepResearch??false,antiHallucination:cfg.antiHallucination??false,shortAnswer:cfg.shortAnswer??false,english:cfg.english===true||cfg.english==='true',comparisonMode:false,slmComparisonMode:false,sidebarCollapsed:cfg.sidebarCollapsed??false,sidebarWidth:Number.isFinite(Number(cfg.sidebarWidth))?Number(cfg.sidebarWidth):270});Object.assign(cfg,{antiHallucination:false,shortAnswer:false,english:false});if(Number(cfg.temperature)===0.7&&Number(cfg.maxTokens)===2048){cfg.temperature=.2;cfg.maxTokens=40000}let launchDraftPending=true;
   if(cfg.model==='google/gemma-3-12b-it:free'){cfg.model='google/gemma-3-12b-it';cfg.inputPrice=.05;cfg.outputPrice=.15;cfg.pricedModel=cfg.model}
   if(cfg.inputPrice===undefined){const r=PRICE[cfg.model];if(r){cfg.inputPrice=r[0];cfg.outputPrice=r[1]}}

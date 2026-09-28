@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- SimpleBrain v133 -->
+<!-- SimpleBrain v134 -->
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -310,12 +310,49 @@ Sciences et médecine :
   function systemText(){const instructions=[FORMAT_INSTRUCTION];if(cfg.antiHallucination)instructions.push(ANTI_HALLUCINATION_INSTRUCTION);if(cfg.shortAnswer)instructions.push('Réponds en 250 mots maximum, de façon concise mais complète.');if(cfg.systemPrompt)instructions.push('Instruction complémentaire : '+cfg.systemPrompt);instructions.push(cfg.english?'INSTRUCTION FINALE ET PRIORITAIRE : réponds exclusivement en anglais. Cette règle s’applique même si la question, l’historique ou une autre instruction est en français.':'INSTRUCTION FINALE ET PRIORITAIRE : réponds exclusivement en français. Cette règle s’applique même si la question, l’historique ou une autre instruction est dans une autre langue.');return instructions.join('\n\n')}
   function messagesForAPI(c){return (c.retryMessages||c.messages).filter(x=>!x.pending&&x.role!=='status')}
   function apiMessages(c){let m=messagesForAPI(c).map(x=>({role:x.role,content:x.content}));m.unshift({role:'system',content:systemText()});return m}
-  function stripTitleLead(text){let title=String(text||'').trim(),previous='';const prefixes=[/^(?:peux[-\s]*tu|pourrais[-\s]*tu|voudrais[-\s]*tu|merci de)\s*/i,/^(?:(?:me|m['’])\s*)?(?:décrire|décris|expliquer|explique|présenter|présente|montrer|montre|donner|donne|parler|parle|raconter|raconte)(?:[-\s]*moi)?\s*/i,/^(?:expliquez|décrivez|présentez|montrez)(?:[-\s]*moi)?\s*/i,/^(?:je voudrais|j['’]aimerais|je souhaite|je veux)\s+(?:(?:mieux)\s+)?(?:comprendre|savoir|connaître|apprendre)\s*/i];while(title&&title!==previous){previous=title;for(const prefix of prefixes)title=title.replace(prefix,'')}return title.replace(/^[:;,\-–—\s]+/,'')}
-  function subjectOnlyTitle(text){return stripTitleLead(text).replace(/^(?:méthodes?|techniques?|approches?)\s+(?:d['’]étude|d['’]analyse|d['’]observation)\s+(?:de|des|du|d['’])\s*(?:la|le|les|l['’])?\s*/i,'').replace(/^(?:activité|rôle|importance|fonctionnement|fonction|définition|description|explication)\s+(?:de|des|du|d['’])\s*(?:la|le|les|l['’])?\s*/i,'').replace(/[?!.]+$/,'').trim()}
+  function stripTitleLead(text){let title=String(text||'').trim(),previous='';const prefixes=[/^(?:peux[-\s]*tu|pourrais[-\s]*tu|voudrais[-\s]*tu|merci de)\s*/i,/^(?:je voudrais|j['’]aimerais|je souhaite|je veux)\s+(?:(?:mieux)\s+)?(?:comprendre|savoir|connaître|apprendre|avoir)\s*/i,/^(?:quel(?:le)?s?\s+(?:est|sont|serait|seraient)|qu['’]est[-\s]*ce que|c['’]est quoi|de quoi s['’]agit(?:-il)?|pourquoi|comment|est[-\s]*ce que|y a[-\s]*t[-\s]*il)\s*/i,/^(?:(?:me|m['’])\s*)?(?:décrire|décris|expliquer|explique|présenter|présente|montrer|montre|donner|donne|parler|parle|raconter|raconte|comparer|compare)(?:[-\s]*moi)?\s*/i,/^(?:expliquez|décrivez|présentez|montrez|comparez)(?:[-\s]*moi)?\s*/i,/^(?:(?:la|le|les|l['’])\s*)?(?:différence|comparaison)\s+(?:entre|de)\s*/i];while(title&&title!==previous){previous=title;for(const prefix of prefixes)title=title.replace(prefix,'')}return title.replace(/^[:;,\-–—\s]+/,'')}
+  function subjectOnlyTitle(text){let title=stripTitleLead(text);title=title.replace(/^(?:(?:la|le|les|l['’])\s*)?(?:méthodes?|techniques?|approches?)\s+(?:d['’]étude|d['’]analyse|d['’]observation)\s+(?:des|du|de|d['’])\s*(?:la|le|les|l['’])?\s*/i,'').replace(/^(?:(?:la|le|les|l['’])\s*)?(?:activité|rôle|importance|fonctionnement|fonction|définition|description|explication|action)\s+(?:des|du|de|d['’])\s*(?:la|le|les|l['’])?\s*/i,'').replace(/^(?:le|la)\s+(.{3,80}?)\s+(?:ne\s+)?(?:revient|retourne|se remet)(?:-t|-il|-elle)?\s+pas\s+à\s+zéro.*$/i,'Réinitialisation $1').replace(/\s+(?:les?\s+)?plus\s+(?:fréquent(?:e|es|s)?|courant(?:e|es|s)?|important(?:e|es|s)?).*$/i,'').replace(/\s+(?:ne\s+)?(?:fonctionne|marche|se fait)\s+pas.*$/i,'').replace(/^(?:la|le|les)\s+/i,'').replace(/[?!.]+$/,'').trim();return title}
   function capitalizeTitle(text){const title=String(text||'').trim();return title?title.charAt(0).toLocaleUpperCase('fr')+title.slice(1):''}
-  function fallbackTitle(text){return capitalizeTitle(subjectOnlyTitle(text).split(/\s+/).slice(0,6).join(' '))||'Nouvelle conversation'}
-  function cleanTitle(text){const title=subjectOnlyTitle(String(text||'').replace(/^\s*(titre\s*:\s*)?/i,'').replace(/["“”«»#*_`]/g,'').replace(/[\r\n]+/g,' ').trim());return capitalizeTitle(title.split(/\s+/).slice(0,6).join(' '))||''}
-  async function generateTitle(question,answer){const answerContext=String(answer||'').replace(/\s+/g,' ').trim().slice(0,1800),prompt='Après avoir analysé la question et la réponse, identifie uniquement le sujet central de la conversation. Donne un groupe nominal français court de 2 à 5 mots qui permettra de retrouver immédiatement le thème dans un historique. Ne résume pas la demande et n’emploie aucune formule d’action ou mot générique comme « expliquer », « description », « activité », « rôle », « méthodes d’étude » ou « question ». Conserve seulement les précisions scientifiques indispensables. Exemples : « Méthodes d’étude de la structure des histones » devient « Structure des histones » ; « Activité des tyrosine kinases » devient « Tyrosine kinases ». Sans guillemets, sans ponctuation finale et sans préambule.\n\nQuestion : '+question+'\n\nRéponse finale : '+answerContext;if(cfg.provider==='gemini'){const body={model:cfg.model,contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:.1,maxOutputTokens:24},systemInstruction:{parts:[{text:'Réponds uniquement par le sujet central sous forme de titre court.'}]}};const r=await proxyFetch('gemini-generate',body),d=await r.json();if(!r.ok)throw Error(d.error?.message||r.statusText);return {title:cleanTitle(d.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')),usage:{input:d.usageMetadata?.promptTokenCount||0,output:d.usageMetadata?.candidatesTokenCount||0}}}if(cfg.provider==='openai'){const body={model:cfg.model,input:prompt,max_output_tokens:cfg.model.startsWith('gpt-5.6')?128:24};if(cfg.model.startsWith('gpt-5.6'))body.reasoning={effort:'none'};const r=await proxyFetch('openai-responses',body),d=await r.json();if(!r.ok)throw Error(d.error?.message||r.statusText);return {title:cleanTitle(d.output_text||d.output?.filter(x=>x.type==='message').flatMap(x=>x.content||[]).map(x=>x.text||'').join('')),usage:{input:d.usage?.input_tokens||0,output:d.usage?.output_tokens||0}}}const body={model:cfg.model,messages:[{role:'system',content:'Réponds uniquement par le sujet central sous forme de titre court.'},{role:'user',content:prompt}],max_tokens:24,temperature:.1},r=await proxyFetch('openrouter-chat',body),d=await r.json();if(!r.ok)throw Error(d.error?.message||r.statusText);return {title:cleanTitle(d.choices?.[0]?.message?.content),usage:{input:d.usage?.prompt_tokens||0,output:d.usage?.completion_tokens||0}}}
+  function limitTitleWords(text,max=5){const all=String(text||'').trim().split(/\s+/).filter(Boolean);let words=all.slice(0,max);if(all.length>max){let connector=-1;for(let i=words.length-1;i>=2;i--)if(/^(?:dans|pour|avec|chez|sur|en|lorsque|quand)$/i.test(words[i])){connector=i;break}if(connector>=2)words=words.slice(0,connector)}while(words.length>2&&/^(?:de|des|du|d['’]|à|au|aux|et|ou)$/i.test(words[words.length-1]))words.pop();return words.join(' ')}
+  function fallbackTitle(text){return capitalizeTitle(limitTitleWords(subjectOnlyTitle(text)))||'Nouvelle conversation'}
+  function cleanTitle(text){const title=subjectOnlyTitle(String(text||'').replace(/^\s*(titre\s*:\s*)?/i,'').replace(/["“”«»#*_`]/g,'').replace(/[\r\n]+/g,' ').trim());return capitalizeTitle(limitTitleWords(title))||''}
+  async function generateTitle(question,answer){
+    const answerContext=String(answer||'').replace(/\s+/g,' ').trim().slice(0,2200),prompt=`Analyse la question et surtout la réponse finale pour identifier le sujet traité.
+
+Produis uniquement un intitulé thématique français de 2 à 5 mots, sous la forme d'un groupe nominal utilisable comme entrée d'index.
+
+Règles impératives :
+- nomme le sujet, l'objet scientifique ou le problème technique ;
+- ne reformule jamais la question et ne conserve aucune tournure interrogative ;
+- supprime les intentions telles que « explique-moi », « pourquoi », « comment », « quelle est », « différence entre », « rôle », « action », « méthodes » ou « je voudrais » ;
+- privilégie les termes précis présents dans la réponse ;
+- sans verbe de demande, guillemets, deux-points, ponctuation finale ou préambule.
+
+Exemples :
+« Quelle est la différence entre transcription et traduction ? » → « Transcription et traduction »
+« Peux-tu expliquer les méthodes d'étude de la structure des histones ? » → « Structure des histones »
+« Pourquoi le prix journalier ne revient-il pas à zéro ? » → « Réinitialisation du coût quotidien »
+« Quelles voies de signalisation sont fréquentes dans le cancer du pancréas ? » → « Signalisation du cancer pancréatique »
+
+Question utilisateur : ${question}
+
+Réponse finale : ${answerContext}`;
+    if(cfg.provider==='gemini'){
+      const generationConfig={temperature:.1,maxOutputTokens:192};
+      if(cfg.model.startsWith('gemini-3'))generationConfig.thinkingConfig={thinkingLevel:'low'};
+      const body={model:cfg.model,contents:[{role:'user',parts:[{text:prompt}]}],generationConfig,systemInstruction:{parts:[{text:'Retourne exclusivement le sujet central sous forme de groupe nominal court.'}]}};
+      const r=await proxyFetch('gemini-generate',body),d=await r.json();if(!r.ok)throw Error(d.error?.message||r.statusText);
+      return {title:cleanTitle(d.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')),usage:{input:d.usageMetadata?.promptTokenCount||0,output:d.usageMetadata?.candidatesTokenCount||0}}
+    }
+    if(cfg.provider==='openai'){
+      const isAstra=cfg.model==='gpt-6-astra',isReasoning=/^gpt-(?:5|6)/.test(cfg.model),supportsNoReasoning=/^(?:gpt-5\.6|gpt-6-(?:sol|luna))/.test(cfg.model),body={model:cfg.model,input:prompt,max_output_tokens:isReasoning?192:48};
+      if(isAstra)body.reasoning={effort:'low'};else if(supportsNoReasoning)body.reasoning={effort:'none'};
+      const r=await proxyFetch('openai-responses',body),d=await r.json();if(!r.ok)throw Error(d.error?.message||r.statusText);
+      return {title:cleanTitle(d.output_text||d.output?.filter(x=>x.type==='message').flatMap(x=>x.content||[]).map(x=>x.text||'').join('')),usage:{input:d.usage?.input_tokens||0,output:d.usage?.output_tokens||0}}
+    }
+    const body={model:cfg.model,messages:[{role:'system',content:'Retourne exclusivement le sujet central sous forme de groupe nominal français court.'},{role:'user',content:prompt}],max_tokens:128,temperature:.1},r=await proxyFetch('openrouter-chat',body),d=await r.json();if(!r.ok)throw Error(d.error?.message||r.statusText);
+    return {title:cleanTitle(d.choices?.[0]?.message?.content),usage:{input:d.usage?.prompt_tokens||0,output:d.usage?.completion_tokens||0}}
+  }
   function queueStreamRender(){if(streamRenderTimer)return;streamRenderTimer=setTimeout(()=>{streamRenderTimer=null;renderMessages()},45)}
   function appendStream(c,text){if(!text)return;const message=c.messages[c.messages.length-1];message.content=(message.content||'')+text}
   async function readSSE(response,onEvent){if(!response.body)throw Error('Le fournisseur ne prend pas en charge la réponse progressive.');const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';const process=block=>{const data=block.split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trim()).join('\n');if(!data||data==='[DONE]')return;let payload;try{payload=JSON.parse(data)}catch{return}if(payload?.error)throw Error(providerErrorMessage(payload));onEvent(payload)};while(true){const {value,done}=await reader.read();buffer+=decoder.decode(value||new Uint8Array(),{stream:!done});let boundary;while((boundary=buffer.search(/\r?\n\r?\n/))>=0){process(buffer.slice(0,boundary));buffer=buffer.slice(boundary).replace(/^\r?\n\r?\n/,'')}if(done)break}if(buffer.trim())process(buffer)}

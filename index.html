@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- SimpleBrain v144 -->
+<!-- SimpleBrain v145 -->
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -217,7 +217,7 @@
   if(DIRECT_MODEL_MIGRATIONS[cfg.model])cfg.model=DIRECT_MODEL_MIGRATIONS[cfg.model];
   if(cfg.model==='gpt-image-2'||!MODELS.openrouter.some(model=>model.id===cfg.model))cfg.model=DEFAULT_CHAT_MODEL;
   cfg.provider=DEFAULT_CHAT_PROVIDER;
-  Object.assign(cfg,{topP:cfg.topP??1,topK:cfg.topK??'',frequencyPenalty:cfg.frequencyPenalty??0,presencePenalty:cfg.presencePenalty??0,seed:cfg.seed??'',deepResearch:cfg.deepResearch??false,reasoningEffort:['auto',...REASONING_LEVELS].includes(cfg.reasoningEffort)?cfg.reasoningEffort:'auto',antiHallucination:cfg.antiHallucination??false,shortAnswer:cfg.shortAnswer??false,english:cfg.english===true||cfg.english==='true',comparisonMode:false,slmComparisonMode:false,sidebarCollapsed:cfg.sidebarCollapsed??false,sidebarWidth:Number.isFinite(Number(cfg.sidebarWidth))?Number(cfg.sidebarWidth):270});Object.assign(cfg,{antiHallucination:false,shortAnswer:false,english:false});if(Number(cfg.temperature)===0.7&&Number(cfg.maxTokens)===2048){cfg.temperature=.2;cfg.maxTokens=40000}let launchDraftPending=true;
+Object.assign(cfg,{topP:cfg.topP??1,topK:cfg.topK??'',frequencyPenalty:cfg.frequencyPenalty??0,presencePenalty:cfg.presencePenalty??0,seed:cfg.seed??'',deepResearch:cfg.deepResearch??false,reasoningEffort:['auto',...REASONING_LEVELS].includes(cfg.reasoningEffort)?cfg.reasoningEffort:'auto',antiHallucination:cfg.antiHallucination??false,shortAnswer:cfg.shortAnswer??false,english:cfg.english===true||cfg.english==='true',comparisonMode:false,slmComparisonMode:false,sidebarCollapsed:cfg.sidebarCollapsed??false,sidebarWidth:Number.isFinite(Number(cfg.sidebarWidth))?Number(cfg.sidebarWidth):270});Object.assign(cfg,{antiHallucination:false,shortAnswer:false,english:false,deepResearch:false});if(Number(cfg.temperature)===0.7&&Number(cfg.maxTokens)===2048){cfg.temperature=.2;cfg.maxTokens=40000}let launchDraftPending=true;
   if(cfg.model==='google/gemma-3-12b-it:free'){cfg.model='google/gemma-3-12b-it';cfg.inputPrice=.05;cfg.outputPrice=.15;cfg.pricedModel=cfg.model}
   {const r=PRICE[cfg.model];if(r){cfg.inputPrice=r[0];cfg.outputPrice=r[1];cfg.pricedModel=cfg.model}}
   for(const secretField of ['geminiKey','openrouterKey','openaiKey','anthropicKey'])delete cfg[secretField];delete cfg.modelLists;

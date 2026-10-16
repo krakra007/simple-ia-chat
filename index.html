@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- SimpleBrain v151 -->
+<!-- SimpleBrain v152 -->
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -171,7 +171,7 @@
   </main>
 </div>
 <script>
-  const DEFAULT_CHAT_PROVIDER='openrouter',DEFAULT_CHAT_MODEL='google/gemma-3-12b-it',MISTRAL_DIRECT_MODEL='mistral-direct/mistral-small-2603',REASONING_LEVELS=['none','minimal','low','medium','high','xhigh','max'];
+  const DEFAULT_CHAT_PROVIDER='openrouter',MISTRAL_DIRECT_MODEL='mistral-direct/mistral-small-2603',DEFAULT_CHAT_MODEL=MISTRAL_DIRECT_MODEL,TITLE_MODEL='google/gemma-3-12b-it',REASONING_LEVELS=['none','minimal','low','medium','high','xhigh','max'];
   const COMPARISON_MODELS=[
     {provider:'openrouter',model:'google/gemini-3.8-flash',label:'Gemini 3.8 Flash'},
     {provider:'openrouter',model:'openai/gpt-6-astra',label:'ChatGPT Astra'},
@@ -290,7 +290,7 @@ Sciences et médecine :
   function modelEntryFor(map,model){return map[model]||Object.entries(map).sort(([a],[b])=>b.length-a.length).find(([key])=>model.startsWith(key))?.[1]}
   function ratesFor(model,inputTokens=0){const tier=modelEntryFor(LONG_CONTEXT_PRICE,model);if(tier&&Number(inputTokens)>tier.above)return tier.rates;return modelEntryFor(PRICE,model)}
   function applyModelPrice(){const r=ratesFor(cfg.model);if(r){cfg.inputPrice=r[0];cfg.outputPrice=r[1];cfg.pricedModel=cfg.model}}
-  function resetDefaultChatModel(){cfg.provider=DEFAULT_CHAT_PROVIDER;cfg.model=DEFAULT_CHAT_MODEL;applyModelPrice()}
+  function resetDefaultChatModel(){cfg.model=DEFAULT_CHAT_MODEL;cfg.provider=cfg.model===MISTRAL_DIRECT_MODEL?'mistral':DEFAULT_CHAT_PROVIDER;applyModelPrice()}
   function pricedUsage(u){if(u?.accountingVersion===1)return u;if(u?.model&&u.model!==cfg.model)return pricedUsageFor(u.model,u);const input=Number(u?.input)||0,tier=modelEntryFor(LONG_CONTEXT_PRICE,cfg.model),tierRates=tier&&input>tier.above?tier.rates:null,automatic=cfg.pricedModel===cfg.model,rates=tierRates&&automatic?tierRates:[Number(cfg.inputPrice),Number(cfg.outputPrice)];return resolveUsageCost(u,rates,Boolean(tierRates&&automatic))}
   function finiteCost(value){if(value===null||value===undefined||value==='')return null;const n=Number(value);return Number.isFinite(n)&&n>=0?n:null}
   function openRouterUsage(raw={},context={}){raw=raw||{};const detail=raw.cost_details||{},promptCost=finiteCost(detail.upstream_inference_prompt_cost),completionCost=finiteCost(detail.upstream_inference_completions_cost),providerCost=finiteCost(detail.upstream_inference_cost)??(promptCost!==null&&completionCost!==null?promptCost+completionCost:null);return {input:Number(raw.prompt_tokens)||0,output:Number(raw.completion_tokens)||0,routerCost:finiteCost(raw.cost),providerCost,isByok:raw.is_byok===true,routeKnown:typeof raw.is_byok==='boolean',cachedInput:Number(raw.prompt_tokens_details?.cached_tokens)||0,reasoningOutput:Number(raw.completion_tokens_details?.reasoning_tokens)||0,model:context.model,generationIds:context.generationId?[context.generationId]:[]}}
@@ -362,7 +362,7 @@ Exemples :
 Question utilisateur : ${question}
 
 Réponse finale : ${answerContext}`;
-    const titleModel=cfg.model===MISTRAL_DIRECT_MODEL?DEFAULT_CHAT_MODEL:cfg.model,body={model:titleModel,messages:[{role:'system',content:'Retourne exclusivement le sujet central sous forme de groupe nominal français court.'},{role:'user',content:prompt}],max_tokens:128};if(!/^openai\/gpt-(?:5|6)/.test(titleModel))body.temperature=.1;const r=await proxyFetch('openrouter-chat',body),d=await r.json();if(!r.ok)throw Error(d.error?.message||r.statusText);
+    const titleModel=cfg.model===MISTRAL_DIRECT_MODEL?TITLE_MODEL:cfg.model,body={model:titleModel,messages:[{role:'system',content:'Retourne exclusivement le sujet central sous forme de groupe nominal français court.'},{role:'user',content:prompt}],max_tokens:128};if(!/^openai\/gpt-(?:5|6)/.test(titleModel))body.temperature=.1;const r=await proxyFetch('openrouter-chat',body),d=await r.json();if(!r.ok)throw Error(d.error?.message||r.statusText);
     return {title:cleanTitle(d.choices?.[0]?.message?.content),usage:openRouterUsage(d.usage,{model:body.model,generationId:d.id})}
   }
   function queueStreamRender(){if(streamRenderTimer)return;streamRenderTimer=setTimeout(()=>{streamRenderTimer=null;renderMessages()},45)}

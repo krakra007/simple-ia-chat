@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- SimpleBrain v184 — agent selon les capacités Web du modèle choisi -->
+<!-- SimpleBrain v187 — récupération complète et sûre de l’historique -->
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -328,7 +328,7 @@ Sciences et médecine :
   function normalizeModelMarkdown(source){return normalizeMarkdownTables(normalizeModelBreaks(source))}
   const baseMarkdown=markdown;markdown=function(source){let count=0;const normalized=normalizeModelMarkdown(source).split('\n').map(line=>{const m=line.match(/^(\s*)1\.\s+(.*)$/);if(m){count++;return m[1]+count+'. '+m[2]}if(/^\s*#{1,4}\s+/.test(line))count=0;return line}).join('\n');return baseMarkdown(normalized)};function current(){return chats.find(c=>c.id===activeId)}
   function cachedChats(){return chats.map(chat=>({...chat,messages:(chat.messages||[]).map(message=>{const cached={...message};if(typeof cached.image==='string'&&cached.image.startsWith('data:')){delete cached.image;cached.imageInCloud=true}return cached})}))}
-  function persistLocalHistory(){const snapshot=cachedChats();if(store.set('simpleIA.chats',snapshot))return true;try{localStorage.removeItem('simpleIA.chats')}catch{}return store.set('simpleIA.chats',snapshot)}
+  function persistLocalHistory(){const snapshot=cachedChats();if(store.set('simpleIA.chats',snapshot))return true;console.warn('Historique local saturé : la copie existante est conservée et Supabase reste la source de récupération.');return false}
   function save(){for(const chat of chats)for(const message of chat.messages||[])if(message.role==='assistant'&&typeof message.content==='string')message.content=normalizeModelMarkdown(message.content);persistLocalHistory();store.set('simpleIA.active',activeId);store.set('simpleIA.cfg',cfg);scheduleSync()}
   function saveConfig(){store.set('simpleIA.cfg',cfg)}
   function setSyncStatus(text,isError=false){const el=$('syncStatus');if(el){el.textContent=text;el.style.color=isError?'#ffabab':'#b4cbe5'}}
@@ -345,13 +345,13 @@ Sciences et médecine :
   function mergeCloudMessage(cloud,local){if(!cloud)return local;if(local.pending&&!cloud.pending)return cloud;const merged={...cloud,...local};if(!local.image&&cloud.image)merged.image=cloud.image;if(merged.image)delete merged.imageInCloud;return merged}
   function mergeConversationMessages(remoteMessages,localMessages){const remote=remoteMessages||[],local=localMessages||[],remoteById=new Map(remote.filter(message=>message.id).map(message=>[message.id,message]));if(local.some(message=>message.pending)){const localIds=new Set(local.map(message=>message.id).filter(Boolean)),merged=local.map(message=>mergeCloudMessage(message.id&&remoteById.get(message.id),message));for(const message of remote)if(!message.id||!localIds.has(message.id))merged.push(message);return merged}const merged=new Map();for(const message of remote)merged.set(message.id||crypto.randomUUID(),message);for(const message of local){const key=message.id||crypto.randomUUID(),cloud=merged.get(key);merged.set(key,mergeCloudMessage(cloud,message))}return [...merged.values()].sort((a,b)=>(a.timestamp||0)-(b.timestamp||0))}
   function mergeCloudConversation(remote,local){if(!local)return remote;const localIsNewer=Number(local.updated||0)>=Number(remote.updated||0),createdValues=[local.created,remote.created].map(Number).filter(Number.isFinite);local.title=localIsNewer?local.title:remote.title;local.important=localIsNewer?Boolean(local.important):Boolean(remote.important);local.agentId=localIsNewer?(local.agentId||remote.agentId):(remote.agentId||local.agentId);local.created=createdValues.length?Math.min(...createdValues):Date.now();local.updated=Math.max(Number(local.updated)||0,Number(remote.updated)||0);local.messages=mergeConversationMessages(remote.messages,local.messages);return local}
+  async function fetchAllCloudRows(table,orderColumn,ascending=true){const rows=[],pageSize=500;for(let from=0;;from+=pageSize){const {data,error}=await sb.from(table).select('*').order(orderColumn,{ascending}).order('id',{ascending:true}).range(from,from+pageSize-1);if(error)throw error;const page=data||[];rows.push(...page);if(page.length<pageSize)break}return rows}
   async function loadFromCloud(){
     if(!activeUser)return;
-    setSyncStatus('Chargement des conversations…');
-    const {data:cs,error:ce}=await sb.from('conversations').select('*').order('updated_at',{ascending:false});
-    if(ce)throw ce;
-    const {data:ms,error:me}=cs.length?await sb.from('messages').select('*').order('created_at',{ascending:true}):{data:[],error:null};
-    if(me)throw me;
+    setSyncStatus('Chargement complet des conversations…');
+    const cs=await fetchAllCloudRows('conversations','updated_at',false);
+    setSyncStatus(`Chargement des messages… ${cs.length} conversation${cs.length>1?'s':''}`);
+    const ms=cs.length?await fetchAllCloudRows('messages','created_at',true):[];
     const legacySettingsIds=new Set((cs||[]).filter(conversation=>conversation.title===LEGACY_AGENT_SETTINGS_TITLE).map(conversation=>conversation.id)),visibleConversations=(cs||[]).filter(conversation=>!legacySettingsIds.has(conversation.id)),visibleMessages=(ms||[]).filter(message=>!legacySettingsIds.has(message.conversation_id));
     const remoteMessageIds=new Set(visibleMessages.map(message=>message.id).filter(Boolean)),messagesByConversation=new Map();
     for(const message of visibleMessages){if(!messagesByConversation.has(message.conversation_id))messagesByConversation.set(message.conversation_id,[]);messagesByConversation.get(message.conversation_id).push(cloudMessage(message))}
@@ -366,7 +366,7 @@ Sciences et médecine :
     if(!activeId)newChat();else restoreConversationModel(current());
     registerKnownCosts();
     persistLocalHistory();store.set('simpleIA.active',activeId);
-    setSyncStatus('✓ Conversations chargées et fusionnées.');
+    setSyncStatus(`✓ ${chats.length} conversation${chats.length>1?'s':''} et ${ms.length} message${ms.length>1?'s':''} chargés.`);
     render();
     if(chats.some(chat=>(chat.messages||[]).some(message=>!message.pending&&message.id&&!remoteMessageIds.has(message.id))))scheduleSync()
   }

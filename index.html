@@ -254,9 +254,9 @@ Commence chaque réponse par le nom du mode utilisé. Si ma demande est ambiguë
 - Structure tes réponses avec des titres et des listes ; privilégie les tableaux pour comparer (voies, enzymes, médicaments, modèles).
 - Adapte le niveau technique au mode choisi, jamais en dessous.`;
   const COMPARISON_MODELS=[
-    {provider:'openrouter',model:'openai/gpt-6-astra',label:'ChatGPT Astra 6'},
-    {provider:'openrouter',model:'anthropic/claude-opus-5',label:'Claude Opus 5'},
-    {provider:'openrouter',model:'google/gemini-4-argon',label:'Gemini 4 Argon'}
+    {provider:'openrouter',model:'openai/gpt-6-astra-pro',label:'GPT-6 Astra Pro'},
+    {provider:'openrouter',model:'google/gemini-4-carbon',label:'Gemini 4 Carbon'},
+    {provider:'openrouter',model:'anthropic/claude-opus-5.5',label:'Claude Opus 5.5'}
   ];
   const ECONOMY_COMPARISON_MODELS=[
     {provider:'openrouter',model:'openai/gpt-5.6-luna',label:'GPT-5.6 Luna'},
@@ -561,7 +561,7 @@ async function askComparison(models){const c=current(),text=$('input').value.tri
   $('historySearchBtn').onclick=()=>setHistorySearchOpen(!$('historySearchWrap').classList.contains('open'));
   $('historySearch').oninput=e=>{historyQuery=e.target.value;renderHistory()};$('historySearch').onkeydown=e=>{if(e.key==='Escape')setHistorySearchOpen(false)};
   $('closeHistory').onclick=()=>{setMobileHistoryOpen(false)};
-  $('agentBtn').onclick=()=>setAgentMode(!cfg.agentMode);$('agentMode').onchange=e=>setAgentMode(e.target.checked);$('resetAgentPrompt').onclick=()=>{cfg.agentPrompt=DEFAULT_BIOLOGY_AGENT_PROMPT;$('agentPrompt').value=cfg.agentPrompt;saveConfig()};$('comparisonBtn').onclick=()=>{if(!cfg.comparisonMode&&!confirm('Attention : cette comparaison utilise simultanément trois modèles haut de gamme et peut être coûteuse. Voulez-vous continuer ?'))return;toggleComparisonOption('comparisonMode')};$('slmComparisonBtn').onclick=()=>toggleComparisonOption('slmComparisonMode');$('englishBtn').onclick=()=>toggleQuickOption('english');$('shortAnswerBtn').onclick=()=>toggleQuickOption('shortAnswer');$('antiHallucinationBtn').onclick=()=>toggleQuickOption('antiHallucination');
+  $('agentBtn').onclick=()=>setAgentMode(!cfg.agentMode);$('agentMode').onchange=e=>setAgentMode(e.target.checked);$('resetAgentPrompt').onclick=()=>{cfg.agentPrompt=DEFAULT_BIOLOGY_AGENT_PROMPT;$('agentPrompt').value=cfg.agentPrompt;saveConfig()};$('comparisonBtn').onclick=()=>{if(!cfg.comparisonMode&&!confirm('Attention : cette comparaison lance simultanément GPT-6 Astra Pro, Gemini 4 Carbon et Claude Opus 5.5. Cette option peut être coûteuse. Voulez-vous continuer ?'))return;toggleComparisonOption('comparisonMode')};$('slmComparisonBtn').onclick=()=>toggleComparisonOption('slmComparisonMode');$('englishBtn').onclick=()=>toggleQuickOption('english');$('shortAnswerBtn').onclick=()=>toggleQuickOption('shortAnswer');$('antiHallucinationBtn').onclick=()=>toggleQuickOption('antiHallucination');
   $('mainContent').addEventListener('pointerdown',e=>{if(!mobileLayout()||e.target.closest('.topbar'))return;setMobileHistoryOpen(false);if(!e.target.closest('#settings'))$('settings').classList.remove('open')});
   $('toggleSidebar').onclick=()=>{if(mobileLayout()){setMobileHistoryOpen(!$('app').classList.contains('mobile-history-open'));return}cfg.sidebarCollapsed=!cfg.sidebarCollapsed;save();render()};
   $('model').onchange=e=>{cfg.model=e.target.value;cfg.provider=isMistralDirectModel(cfg.model)?'mistral':DEFAULT_CHAT_PROVIDER;applyResearchDefaultForSelectedModel();applyModelPrice();save();setFields()};$('deepResearch').onchange=e=>{cfg.deepResearch=modelSupportsWebResearch(cfg.model)&&e.target.checked;save();updateResearchControl();updateAgentControl()};$('reasoningEffort').onchange=e=>{cfg.reasoningEffort=e.target.value;saveConfig();updateReasoningControl();updateParameterSupport()};

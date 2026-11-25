@@ -295,7 +295,7 @@ Commence chaque réponse par le nom du mode utilisé. Si ma demande est ambiguë
     {label:'────── Anthropic Claude ──────',models:[{id:'anthropic/claude-haiku-5.5',label:'Claude Haiku 5.5'},{id:'anthropic/claude-sonnet-5.5',label:'Claude Sonnet 5.5'},{id:'anthropic/claude-opus-5.5',label:'Claude Opus 5.5'},{id:'anthropic/claude-opus-5',label:'Claude Opus 5'},{id:'anthropic/claude-sonnet-5',label:'Claude Sonnet 5'},{id:'anthropic/claude-opus-4.8',label:'Claude Opus 4.8'},{id:'anthropic/claude-opus-4.7',label:'Claude Opus 4.7'},{id:'anthropic/claude-sonnet-4.6',label:'Claude Sonnet 4.6'},{id:'anthropic/claude-opus-4.6',label:'Claude Opus 4.6'},{id:'anthropic/claude-opus-4.5',label:'Claude Opus 4.5'},{id:'anthropic/claude-haiku-4.5',label:'Claude Haiku 4.5'},{id:'anthropic/claude-sonnet-4.5',label:'Claude Sonnet 4.5'}]},
     {label:'──────── xAI Grok ────────',models:[{id:'x-ai/grok-4.7',label:'Grok 4.7'},{id:'x-ai/grok-4.6',label:'Grok 4.6'},{id:'x-ai/grok-4.5',label:'Grok 4.5'},{id:'x-ai/grok-build-0.1',label:'Grok Build 0.1'},{id:'x-ai/grok-4.3',label:'Grok 4.3'},{id:'x-ai/grok-4.20-multi-agent',label:'Grok 4.20 Multi-Agent'},{id:'x-ai/grok-4.20',label:'Grok 4.20'}]},
     {label:'──── Mistral · API directe ────',models:[{id:MISTRAL_DIRECT_MODEL,label:'Mistral Small 4 · API directe',direct:true}],dynamicMistral:true},
-    {label:'────── Autres modèles ──────',models:[{id:'meta/muse-ember',label:'Muse Ember'},{id:'moonshotai/kimi-k3.1-pro',label:'Kimi K3.1 Pro'},{id:'deepseek/deepseek-v4.1-flash-1017',label:'DeepSeek V4.1 Flash 1017'},{id:'qwen/qwen3.8-max-prime',label:'Qwen3.8 Max Prime'},{id:'nvidia/nemotron-3.5-lightning',label:'NVIDIA Nemotron 3.5 Lightning'},{id:'nvidia/nemotron-3.5-super-vl',label:'NVIDIA Nemotron 3.5 Super VL'},{id:'meta/muse-spark-open',label:'Muse Spark Open'},{id:'qwen/qwen3.8-flash',label:'Qwen3.8 Flash'},{id:'google/gemma-4-31b-it',label:'Gemma 4 31B'},{id:'google/gemma-4-26b-a4b-it',label:'Gemma 4 26B A4B'},{id:'qwen/qwen3.5-9b',label:'Qwen3.5 9B'},{id:'deepseek/deepseek-v4.1-flash',label:'DeepSeek V4.1 Flash'},{id:'deepseek/deepseek-v4-flash-vision-exp',label:'DeepSeek V4 Flash Vision Exp'},{id:'deepseek/deepseek-v4-pro-0813',label:'DeepSeek V4 Pro 0813'},{id:'deepseek/deepseek-v4-flash-0731',label:'DeepSeek V4 Flash 0731'},{id:'google/gemma-3-12b-it',label:'Gemma 3 12B'},{id:'meta/muse-spark-1.3',label:'Muse Spark 1.3'},{id:'xiaomi/mimo-v2.6-pro',label:'Xiaomi MiMo-V2.6-Pro'},{id:'perplexity/sonar-pro',label:'Perplexity Sonar Pro · Web'}]}
+    {label:'────── Autres modèles ──────',models:[{id:'qwen/qwen3.5-9b',label:'Qwen3.5 9B'},{id:'google/gemma-3-12b-it',label:'Gemma 3 12B'},{id:'perplexity/sonar-pro',label:'Perplexity Sonar Pro · Web'}]}
   ];
   const MODELS={openrouter:MODEL_GROUPS.flatMap(group=>group.models).filter(model=>!model.direct)};
   const PRICE={
@@ -480,11 +480,7 @@ function usageText(u){if(!u)return '';if(u.kind==='image')return `Image ${u.size
     return [...(openRouterModels??MODELS.openrouter),...mistralDirectModels,...MODEL_GROUPS.find(group=>group.dynamicMistral).models];
   }
   function openRouterModelGroup(id){
-    const knownGroup=MODEL_GROUPS.find(group=>group.models.some(model=>model.id===id));
-    if(knownGroup)return knownGroup;
-    const prefixes=['openai/','google/gemini-','anthropic/','x-ai/'];
-    const index=prefixes.findIndex(prefix=>id.startsWith(prefix));
-    return index>=0?MODEL_GROUPS[index]:MODEL_GROUPS.at(-1);
+    return MODEL_GROUPS.find(group=>group.models.some(model=>model.id===id));
   }
   function modelLabel(model){return modelList().find(item=>item.id===model)?.label||mistralApiModel(model)||model}
   function sortModelsByPrice(models){return models.map((model,index)=>({model,index,rates:PRICE[model.id]||null})).sort((a,b)=>{const aOut=Number(a.rates?.[1]),bOut=Number(b.rates?.[1]),aIn=Number(a.rates?.[0]),bIn=Number(b.rates?.[0]);if(Number.isFinite(aOut)!==Number.isFinite(bOut))return Number.isFinite(bOut)?1:-1;if(Number.isFinite(aOut)&&aOut!==bOut)return bOut-aOut;if(Number.isFinite(aIn)&&aIn!==bIn)return bIn-aIn;return a.index-b.index}).map(item=>item.model)}
@@ -629,6 +625,7 @@ Réponse finale : ${answerContext}`;
     const models=new Map();
     for(const model of data){
       if(typeof model?.id!=='string'||!model.id.includes('/')||isMistralDirectModel(model.id))continue;
+      if(!savedLabels.has(model.id))continue;
       if(/:batch$/i.test(model.id)||/\(batch\)\s*$/i.test(model.name??''))continue;
       const architecture=model.architecture;
       if(architecture?.input_modalities&&!architecture.input_modalities.includes('text'))continue;
@@ -639,12 +636,13 @@ Réponse finale : ${answerContext}`;
 
     openRouterCapabilities.clear();
     for(const model of data){
-      if(!models.has(model?.id))continue;
+      if(typeof model?.id!=='string')continue;
       openRouterCapabilities.set(model.id,{
         supportedParameters:Array.isArray(model.supported_parameters)?model.supported_parameters:[],
         reasoning:model.reasoning||null,
         maxCompletionTokens:Number(model.top_provider?.max_completion_tokens)||null
       });
+      if(!savedLabels.has(model.id)&&![...COMPARISON_MODELS,...ECONOMY_COMPARISON_MODELS].some(entry=>entry.model===model.id))continue;
       const {prompt,completion}=model.pricing||{};
       if(prompt==null||completion==null)continue;
       const input=Number(prompt)*1000000,output=Number(completion)*1000000;

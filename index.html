@@ -629,6 +629,7 @@ Réponse finale : ${answerContext}`;
     const models=new Map();
     for(const model of data){
       if(typeof model?.id!=='string'||!model.id.includes('/')||isMistralDirectModel(model.id))continue;
+      if(/:batch$/i.test(model.id)||/\(batch\)\s*$/i.test(model.name??''))continue;
       const architecture=model.architecture;
       if(architecture?.input_modalities&&!architecture.input_modalities.includes('text'))continue;
       if(architecture?.output_modalities&&!architecture.output_modalities.includes('text'))continue;
